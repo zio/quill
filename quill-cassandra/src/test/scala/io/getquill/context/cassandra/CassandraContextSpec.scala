@@ -1,6 +1,7 @@
 package io.getquill.context.cassandra
 
-import io.getquill._
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet
+import io.getquill.{EntityQuery, Quoted, Update}
 import io.getquill.base.Spec
 import io.getquill.context.ExecutionInfo
 
@@ -14,10 +15,12 @@ class CassandraContextSpec extends Spec {
     "async" in {
       import testAsyncDB._
       case class TestEntity(id: Int, s: String, i: Int, l: Long, o: Int)
-      val update = quote {
+      val update: Quoted[Update[TestEntity]] = quote {
         query[TestEntity].filter(_.id == lift(1)).update(_.i -> lift(1))
       }
-      await(testAsyncDB.run(update)) mustEqual (())
+      val result: AsyncResultSet = await(testAsyncDB.run(update))
+      assert(result != null)
+
     }
     "sync" in {
       import testSyncDB._
