@@ -499,7 +499,7 @@ lazy val `quill-cassandra-pekko` =
       Test / fork := true,
       libraryDependencies ++= Seq(
         "org.apache.pekko" %% "pekko-connectors-cassandra" % "1.0.2",
-        "org.apache.pekko" %% "pekko-testkit"              % "1.0.2" % Test
+        "org.apache.pekko" %% "pekko-testkit"              % "1.0.3" % Test
       )
     )
     .dependsOn(`quill-cassandra` % "compile->compile;test->test")
