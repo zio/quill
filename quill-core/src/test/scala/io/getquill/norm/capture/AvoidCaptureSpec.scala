@@ -6,6 +6,7 @@ import io.getquill.MirrorContexts.testContext.qr2
 import io.getquill.MirrorContexts.testContext.qr3
 import io.getquill.MirrorContexts.testContext.quote
 import io.getquill.MirrorContexts.testContext.unquote
+import io.getquill.StatefulCache
 import io.getquill.util.TraceConfig
 
 class AvoidCaptureSpec extends Spec {
@@ -17,6 +18,6 @@ class AvoidCaptureSpec extends Spec {
     val n = quote {
       qr1.filter(u => u.s == "s1").flatMap(u => qr2.filter(u1 => u1.s == "s1")).flatMap(u1 => qr3.map(u2 => u2.s))
     }
-    AvoidCapture(q.ast, TraceConfig(List.empty)) mustEqual n.ast
+    AvoidCapture(q.ast, StatefulCache.NoCache, TraceConfig(List.empty)) mustEqual n.ast
   }
 }

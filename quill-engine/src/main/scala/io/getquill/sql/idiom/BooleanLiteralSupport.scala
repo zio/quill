@@ -3,7 +3,7 @@ package io.getquill.sql.idiom
 import io.getquill.NamingStrategy
 import io.getquill.ast._
 import io.getquill.context.sql.idiom.SqlIdiom
-import io.getquill.context.sql.norm.SqlNormalize
+import io.getquill.context.sql.norm.{SqlNormalize, SqlNormalizeCaches}
 import io.getquill.idiom.StatementInterpolator._
 import io.getquill.idiom.StringToken
 import io.getquill.norm.{ConcatBehavior, EqualityBehavior}
@@ -20,7 +20,7 @@ trait BooleanLiteralSupport extends SqlIdiom {
     equalityBehavior: EqualityBehavior,
     idiomContext: IdiomContext
   ) = {
-    val norm = SqlNormalize(ast, idiomContext.config, concatBehavior, equalityBehavior)
+    val norm = SqlNormalize(ast, idiomContext.config, makeCache(), concatBehavior, equalityBehavior)
     if (Messages.smartBooleans)
       VendorizeBooleans(norm)
     else

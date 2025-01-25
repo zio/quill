@@ -6,6 +6,7 @@ import io.getquill.base.Spec
 import io.getquill.norm.EqualityBehavior.{AnsiEquality, NonAnsiEquality}
 import io.getquill.MirrorContexts.testContext.{quote, unquote}
 import io.getquill.MirrorContexts.testContext.extras._
+import io.getquill.StatelessCache
 
 class SimplifyNullChecksSpec extends Spec {
 
@@ -17,8 +18,8 @@ class SimplifyNullChecksSpec extends Spec {
   val it = Ident("t")
   val ca = Constant.auto("a")
 
-  val SimplifyNullChecksAnsi    = new SimplifyNullChecks(AnsiEquality)
-  val SimplifyNullChecksNonAnsi = new SimplifyNullChecks(NonAnsiEquality)
+  val SimplifyNullChecksAnsi    = new SimplifyNullChecks(StatelessCache.NoCache, AnsiEquality)
+  val SimplifyNullChecksNonAnsi = new SimplifyNullChecks(StatelessCache.NoCache, NonAnsiEquality)
 
   "center rule must" - {
     "apply when conditionals same" in {

@@ -109,7 +109,11 @@ trait ContextTranslateProto {
   )(executionInfo: ExecutionInfo, dc: Runner): List[String] =
     groups.flatMap { group =>
       (group.prepare zip group.liftings).map { case (_, liftings) =>
-        translateQuery(group.string, options = options, liftings = liftings)(executionInfo, dc)
+        if (liftings.forall(_.isInstanceOf[ScalarLift])) {
+          translateQuery(group.string, options = options, liftings = liftings.asInstanceOf[List[ScalarLift]])(executionInfo, dc)
+        } else {
+          throw new IllegalArgumentException("All liftings in Scala2-Quill must be ScalarLifts")
+        }
       }
     }
 
