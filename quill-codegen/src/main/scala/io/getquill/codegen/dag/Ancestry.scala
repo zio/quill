@@ -50,10 +50,10 @@ object DefaultNodeCatalog extends NodeCatalog {
 
   override def lookup(cls: ClassTag[_]): DagNode = nodeCatalogNodes
     .find(_.cls == cls)
-    .getOrElse({
+    .getOrElse {
       logger.warn(s"Could not find type hierarchy node for: ${cls} Must assume it's a string")
       StringNode
-    })
+    }
 }
 
 package object dag {

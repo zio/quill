@@ -32,9 +32,9 @@ sealed trait CodegenTestCases {
   def schemaMakerCoordinates(dbPrefix: ConfigPrefix) = SchemaMakerCoordinates(dbPrefix, naming, schemaConfig)
 
   def generateWithSchema(dbPrefix: ConfigPrefix, basePath: String): Future[Seq[Path]] =
-    SchemaMaker.withContext(schemaMakerCoordinates(dbPrefix))({
+    SchemaMaker.withContext(schemaMakerCoordinates(dbPrefix))(
       generate(dbPrefix, basePath)
-    })
+    )
 
   protected def generate(dbPrefix: ConfigPrefix, basePath: String): Future[Seq[Path]]
   protected def pathList(implicit dbPrefix: ConfigPrefix) =

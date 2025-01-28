@@ -49,7 +49,7 @@ object extensions {
    *
    *   1. We need to copy the function as it's private and we can't access it.
    *      2. We wrapped the code we copied into a ZIO to be sure to correctly
-   *      close the writer.
+   *         close the writer.
    *
    * See:
    *   - https://github.com/zio/zio-logging/blob/v2.1.14/core/shared/src/main/scala/zio/logging/package.scala#L470-L491

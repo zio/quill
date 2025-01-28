@@ -396,8 +396,7 @@ class SqlActionMacroSpec extends Spec {
               .insertValue(lift(TestEntity("s", 0, 1L, None, true)))
               .returningGenerated(r =>
                 (query[Dummy]
-                  .filter(r => r.i == r.i /* always true since r overridden! */
-                  )
+                  .filter(r => r.i == r.i /* always true since r overridden! */ )
                   .map(r => r.i)
                   .max)
               )
@@ -666,8 +665,7 @@ class SqlActionMacroSpec extends Spec {
               .insertValue(lift(TestEntity("s", 0, 1L, None, true)))
               .returning(r =>
                 (query[Dummy]
-                  .filter(r => r.i == r.i /* always true since r overridden! */
-                  )
+                  .filter(r => r.i == r.i /* always true since r overridden! */ )
                   .map(r => r.i)
                   .max)
               )
@@ -903,8 +901,7 @@ class SqlActionMacroSpec extends Spec {
               .updateValue(lift(TestEntity("s", 0, 1L, None, true)))
               .returning(r =>
                 (query[Dummy]
-                  .filter(r => r.i == r.i /* always true since r overridden! */
-                  )
+                  .filter(r => r.i == r.i /* always true since r overridden! */ )
                   .map(r => r.i)
                   .max)
               )
@@ -1129,8 +1126,7 @@ class SqlActionMacroSpec extends Spec {
             qr1.delete
               .returning(r =>
                 (query[Dummy]
-                  .filter(r => r.i == r.i /* always true since r overridden! */
-                  )
+                  .filter(r => r.i == r.i /* always true since r overridden! */ )
                   .map(r => r.i)
                   .max)
               )
