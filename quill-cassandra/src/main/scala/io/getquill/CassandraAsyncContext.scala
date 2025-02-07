@@ -1,16 +1,15 @@
 package io.getquill
 
-import com.datastax.oss.driver.api.core.{CqlSession, CqlSessionBuilder}
+import com.datastax.oss.driver.api.core.CqlSession
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet
 import com.typesafe.config.Config
 import io.getquill.context.ExecutionInfo
-import io.getquill.context.cassandra.util.FutureConversions._
 import io.getquill.monad.ScalaFutureIOMonad
 import io.getquill.util.{ContextLogger, LoadConfig}
 
-import scala.jdk.CollectionConverters._
 import scala.compat.java8.FutureConverters._
-
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class CassandraAsyncContext[+N <: NamingStrategy](
   naming: N,
@@ -30,7 +29,7 @@ class CassandraAsyncContext[+N <: NamingStrategy](
   override type Result[T]               = Future[T]
   override type RunQueryResult[T]       = List[T]
   override type RunQuerySingleResult[T] = T
-  override type RunActionResult         = Unit
+  override type RunActionResult         = AsyncResultSet
   override type RunBatchActionResult    = Unit
   override type Runner                  = Unit
 
@@ -58,7 +57,7 @@ class CassandraAsyncContext[+N <: NamingStrategy](
     executionContext: ExecutionContext
   ): Result[RunActionResult] = {
     val statement = prepareAsyncAndGetStatement(cql, prepare, this, logger)
-    statement.flatMap(st => session.executeAsync(st).toCompletableFuture.toScala).map(_ => ())
+    statement.flatMap(st => session.executeAsync(st).toCompletableFuture.toScala)
   }
 
   def executeBatchAction(
