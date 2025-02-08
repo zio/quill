@@ -1,5 +1,6 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCacheOpt, StatelessCacheOpt}
 import io.getquill.ast.{Filter, FlatMap, Query, Union, UnionAll}
 import io.getquill.util.TraceConfig
 
@@ -14,9 +15,9 @@ import io.getquill.util.TraceConfig
  * whereas in Quill they are characterized as list comprehensions i.e.
  * `P.flatMap(x => ...)`.
  */
-class SymbolicReduction(traceConfig: TraceConfig) {
+class SymbolicReduction(val cache: StatelessCacheOpt, traceConfig: TraceConfig) extends HasStatelessCacheOpt {
 
-  def unapply(q: Query) =
+  def unapply(q: Query) = cached(q) {
     q match {
 
       /*
@@ -68,4 +69,5 @@ class SymbolicReduction(traceConfig: TraceConfig) {
 
       case other => None
     }
+  }
 }

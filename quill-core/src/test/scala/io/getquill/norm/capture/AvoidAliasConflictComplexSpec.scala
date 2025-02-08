@@ -3,11 +3,11 @@ package io.getquill.norm.capture
 import io.getquill.MirrorContexts.testContext._
 import io.getquill.Query
 import io.getquill.base.Spec
-import io.getquill.norm.{Normalize, TranspileConfig}
+import io.getquill.norm.{Normalize, NormalizeCaches, TranspileConfig}
 
 class AvoidAliasConflictComplexSpec extends Spec {
 
-  val normalize = new Normalize(TranspileConfig.Empty)
+  val normalize = new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty)
 
   "properly aliases explicit join sets" - {
     import io.getquill.norm.Normalize

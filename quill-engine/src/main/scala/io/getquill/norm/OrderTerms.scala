@@ -1,11 +1,12 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCacheOpt, StatelessCacheOpt}
 import io.getquill.ast._
 import io.getquill.util.TraceConfig
 
-class OrderTerms(traceConfig: TraceConfig) {
+class OrderTerms(val cache: StatelessCacheOpt, traceConfig: TraceConfig) extends HasStatelessCacheOpt {
 
-  def unapply(q: Query) =
+  def unapply(q: Query) = cached(q) {
     q match {
 
       case Take(Map(a: GroupBy, b, c), d) => None
@@ -27,4 +28,5 @@ class OrderTerms(traceConfig: TraceConfig) {
 
       case other => None
     }
+  }
 }

@@ -15,6 +15,6 @@ class NormalizeAggregationIdentSpec extends Spec {
         p._1 -> p._2.map(x1 => x1.l).sum
       }
     }
-    new Normalize(TranspileConfig.Empty)(q.ast) mustEqual (n.ast)
+    new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty)(q.ast) mustEqual (n.ast)
   }
 }

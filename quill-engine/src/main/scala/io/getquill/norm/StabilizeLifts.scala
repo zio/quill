@@ -3,6 +3,8 @@ package io.getquill.norm
 import io.getquill.ast._
 import scala.collection.immutable.{Map => IMap}
 
+// TODO this needs to also stablize UIDs of ScalarTag etc... and produce maps of them
+// TODO include this in the compile-time version of the transformations
 private[getquill] object StabilizeLifts {
 
   def stabilize(ast: Ast): (Ast, State) = {

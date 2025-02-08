@@ -45,6 +45,12 @@ object Messages {
     cache("quill.trace.ast.simple", variable("quill.trace.ast.simple", "quill_trace_ast_simple", "false").toBoolean)
   def traceQuats =
     cache("quill.trace.quat", QuatTrace(variable("quill.trace.quat", "quill_trace_quat", QuatTrace.None.value)))
+
+  def cacheNormalization = cache(
+    "quill.cache.norm",
+    variable("quill.cache.norm", "quill_cache_norm", "true").toBoolean
+  )
+
   def cacheDynamicQueries = cache(
     "quill.query.cacheDynamic",
     variable("quill.query.cacheDynamic", "query_query_cacheDynamic", "true").toBoolean

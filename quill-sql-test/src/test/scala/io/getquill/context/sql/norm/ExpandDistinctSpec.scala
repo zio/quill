@@ -1,6 +1,6 @@
 package io.getquill.context.sql.norm
 
-import io.getquill.Ord
+import io.getquill.{Ord, StatelessCache}
 import io.getquill.base.Spec
 import io.getquill.context.sql.testContext.qr1
 import io.getquill.context.sql.testContext.quote
@@ -8,7 +8,7 @@ import io.getquill.context.sql.testContext.unquote
 import io.getquill.util.TraceConfig
 
 class ExpandDistinctSpec extends Spec {
-  val ExpandDistinct = new ExpandDistinct(TraceConfig.Empty)
+  val ExpandDistinct = new ExpandDistinct(StatelessCache.NoCache, TraceConfig.Empty)
 
   "expands distinct map" - {
     "simple" in {

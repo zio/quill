@@ -9,7 +9,7 @@ import io.getquill.MirrorContexts.testContext.unquote
 
 class NormalizeSpec extends Spec {
 
-  val normalize = new Normalize(TranspileConfig.Empty)
+  val normalize = new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty)
 
   "normalizes random-generated queries" - {
     val gen = new QueryGenerator(1)
