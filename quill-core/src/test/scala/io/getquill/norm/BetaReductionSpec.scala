@@ -181,8 +181,15 @@ class BetaReductionSpec extends Spec {
       BetaReduction(ast) mustEqual BinaryOperation(Ident("b"), NumericOperator.`/`, Ident("a"))
     }
     "nested function apply" in {
+      // (b) => a/b
       val f1       = Function(List(Ident("b")), BinaryOperation(Ident("a"), NumericOperator.`/`, Ident("b")))
+      // (a) => (b) => a/b
       val f2       = Function(List(Ident("a")), f1)
+      // ((a) => (b) => a/b).apply(b).apply(a) ->
+      //   (tmp_b) => a/tmp_b ->
+      //       (a) => tmp_a/tmp_b ->
+      //       tmp_a/a
+      //     b/a
       val ast: Ast = FunctionApply(FunctionApply(f2, List(Ident("b"))), List(Ident("a")))
       BetaReduction(ast) mustEqual BinaryOperation(Ident("b"), NumericOperator.`/`, Ident("a"))
     }
