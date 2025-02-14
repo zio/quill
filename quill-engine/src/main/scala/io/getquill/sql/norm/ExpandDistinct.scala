@@ -1,5 +1,6 @@
 package io.getquill.context.sql.norm
 
+import io.getquill.{HasStatelessCache, StatelessCache}
 import io.getquill.ast.Visibility.Hidden
 import io.getquill.ast._
 import io.getquill.quat.Quat
@@ -7,12 +8,12 @@ import io.getquill.quat.QuatNestingHelper._
 import io.getquill.util.{Interpolator, TraceConfig}
 import io.getquill.util.Messages.TraceType
 
-class ExpandDistinct(traceConfig: TraceConfig) {
+class ExpandDistinct(val cache: StatelessCache, traceConfig: TraceConfig) extends HasStatelessCache {
 
   val interp = new Interpolator(TraceType.ExpandDistinct, traceConfig, 3)
   import interp._
 
-  def apply(q: Ast): Ast =
+  def apply(q: Ast): Ast = cached(q) {
     q match {
       case Distinct(q) =>
         trace"ExpandDistinct Distinct(inside)" andReturn
@@ -85,4 +86,5 @@ class ExpandDistinct(traceConfig: TraceConfig) {
               Map(Distinct(newMap), newIdent, Property(newIdent, "_1"))
         }
     }
+  }
 }

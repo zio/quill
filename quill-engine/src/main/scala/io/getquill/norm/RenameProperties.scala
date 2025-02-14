@@ -1,5 +1,6 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCache, StatelessCache}
 import io.getquill.ast._
 import io.getquill.quat.Quat
 import io.getquill.util.{Interpolator, TraceConfig}
@@ -29,14 +30,17 @@ import io.getquill.util.Messages.{TraceType, title}
  * transformations with straightforward operations since the majority of the
  * logic actually lives within the Quats themselves.
  */
-class RenameProperties(traceConfig: TraceConfig) {
+class RenameProperties(val cache: StatelessCache, traceConfig: TraceConfig) extends HasStatelessCache {
   private def demarcate(heading: String) =
     ((ast: Ast) => title(heading)(ast))
 
   val ApplyRenamesToPropsPhase = new ApplyRenamesToProps(traceConfig)
   val RepropagateQuatsPhase    = new RepropagateQuats(traceConfig)
 
-  def apply(ast: Ast) =
+  // Note that caching every single sub-transform of this phase might be dangerous
+  // because identifier equality does not (yet) take upcoming renames into account.
+  // If we want more in-depth caching of this phase we need to think of a strategy for that.
+  def apply(ast: Ast) = cached(ast) {
     (identity[Ast] _)
       .andThen(SeedRenames.apply(_: Ast)) // Stage field renames into the Quats of entities
       .andThen(demarcate("SeedRenames"))
@@ -48,6 +52,7 @@ class RenameProperties(traceConfig: TraceConfig) {
       .andThen(demarcate("ApplyRenamesToProps")) // Go through the Quats and 'commit' the renames
       .andThen(CompleteRenames.apply(_: Ast))
       .andThen(demarcate("CompleteRenames"))(ast) // Quats can be invalid in between this phase and the previous one
+  }
 }
 
 object CompleteRenames extends StatelessTransformer {

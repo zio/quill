@@ -1,5 +1,6 @@
 package io.getquill.context.sql.norm
 
+import io.getquill.{HasStatelessCache, StatelessCache}
 import io.getquill.ast._
 import io.getquill.norm.BetaReduction
 import io.getquill.norm.Normalize
@@ -17,9 +18,11 @@ import io.getquill.norm.Normalize
  * `ExpandNestedQueries` does not yet use Quat fields for expansion. Once this
  * is changed, using that implementation here should be reconsidered.
  */
-class ExpandJoin(normalize: Normalize) {
+class ExpandJoin(val cache: StatelessCache, normalize: Normalize) extends HasStatelessCache {
 
-  def apply(q: Ast) = expand(q, None)
+  def apply(q: Ast) = cached(q) {
+    expand(q, None)
+  }
 
   def expand(q: Ast, id: Option[Ident]) =
     Transform(q) {

@@ -6,6 +6,7 @@ import io.getquill.MirrorContexts.testContext.qr1
 import io.getquill.MirrorContexts.testContext.qr2
 import io.getquill.MirrorContexts.testContext.quote
 import io.getquill.MirrorContexts.testContext.unquote
+import io.getquill.StatelessCacheOpt
 
 class NormalizeNestedStructuresSpec extends Spec {
 
@@ -17,7 +18,7 @@ class NormalizeNestedStructuresSpec extends Spec {
     qr1.take(1).map(x => x.i).size
   }
 
-  val NormalizeNestedStructures = new NormalizeNestedStructures(new Normalize(TranspileConfig.Empty))
+  val NormalizeNestedStructures = new NormalizeNestedStructures(new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty), StatelessCacheOpt.NoCache)
 
   "returns Some if a nested structure changes" - {
     "flatMap" in {

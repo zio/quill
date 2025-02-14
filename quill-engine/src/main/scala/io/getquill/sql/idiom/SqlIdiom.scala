@@ -25,6 +25,12 @@ trait SqlIdiom extends Idiom {
 
   def useActionTableAliasAs: ActionTableAliasBehavior = ActionTableAliasBehavior.UseAs
 
+  def makeCache() =
+    if (Messages.cacheNormalization)
+      SqlNormalizeCaches.unlimitedLocal()
+    else
+      SqlNormalizeCaches.NoCache
+
   override def prepareForProbing(string: String): String
 
   protected def concatBehavior: ConcatBehavior = AnsiConcat
@@ -42,7 +48,7 @@ trait SqlIdiom extends Idiom {
     equalityBehavior: EqualityBehavior,
     idiomContext: IdiomContext
   ) =
-    SqlNormalize(ast, idiomContext.config, concatBehavior, equalityBehavior)
+    SqlNormalize(ast, idiomContext.config, makeCache(), concatBehavior, equalityBehavior)
 
   def querifyAst(ast: Ast, traceConfig: TraceConfig) = new SqlQueryApply(traceConfig)(ast)
 

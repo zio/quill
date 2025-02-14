@@ -1,10 +1,11 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCacheOpt, StatelessCacheOpt}
 import io.getquill.ast._
 
-class NormalizeNestedStructures(normalize: Normalize) {
+class NormalizeNestedStructures(normalize: Normalize, val cache: StatelessCacheOpt) extends HasStatelessCacheOpt {
 
-  def unapply(q: Query): Option[Query] =
+  def unapply(q: Query): Option[Query] = cached(q) {
     q match {
       case e: Entity          => None
       case Map(a, b, c)       => apply(a, c)(Map(_, b, _))
@@ -37,6 +38,7 @@ class NormalizeNestedStructures(normalize: Normalize) {
           case (a, b, on)       => Some(Join(t, a, b, iA, iB, on))
         }
     }
+  }
 
   private def apply(a: Ast)(f: Ast => Query) =
     (normalize(a)) match {
@@ -49,4 +51,5 @@ class NormalizeNestedStructures(normalize: Normalize) {
       case (`a`, `b`) => None
       case (a, b)     => Some(f(a, b))
     }
+
 }

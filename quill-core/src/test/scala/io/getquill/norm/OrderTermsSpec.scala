@@ -6,11 +6,12 @@ import io.getquill.MirrorContexts.testContext.qr1
 import io.getquill.MirrorContexts.testContext.qr2
 import io.getquill.MirrorContexts.testContext.quote
 import io.getquill.MirrorContexts.testContext.unquote
+import io.getquill.StatelessCacheOpt
 import io.getquill.util.TraceConfig
 
 class OrderTermsSpec extends Spec {
 
-  val OrderTerms = new OrderTerms(TraceConfig.Empty)
+  val OrderTerms = new OrderTerms(StatelessCacheOpt.NoCache, TraceConfig.Empty)
 
   "doesn't reorder groupBy.map" in {
     val q = quote {

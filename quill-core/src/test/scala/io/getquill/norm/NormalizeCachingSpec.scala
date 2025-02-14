@@ -4,7 +4,7 @@ import io.getquill.base.Spec
 
 class NormalizeCachingSpec extends Spec {
 
-  val normalize = new Normalize(TranspileConfig.Empty)
+  val normalize = new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty)
   val cached    = NormalizeCaching(normalize.apply)
   val gen       = new QueryGenerator(1)
 

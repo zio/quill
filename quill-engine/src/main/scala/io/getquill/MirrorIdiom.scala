@@ -6,7 +6,7 @@ import io.getquill.ast.{Action => AstAction, Query => AstQuery, _}
 import io.getquill.context.{CanReturnClause, ExecutionType}
 import io.getquill.idiom.StatementInterpolator._
 import io.getquill.idiom.{Idiom, SetContainsToken, Statement, Token}
-import io.getquill.norm.{Normalize, NormalizeCaching}
+import io.getquill.norm.{Normalize, NormalizeCaches, NormalizeCaching}
 import io.getquill.quat.Quat
 import io.getquill.util.Interleave
 
@@ -33,7 +33,8 @@ trait MirrorIdiomBase extends Idiom {
   )(implicit
     naming: NamingStrategy
   ): (Ast, Statement, ExecutionType) = {
-    val normalize     = new Normalize(idiomContext.config)
+    // plugging in NormalizeCaches.noCache into `Normalize` because NormalizeCaching does that work
+    val normalize     = new Normalize(NormalizeCaches.noCache, idiomContext.config)
     val normalizedAst = NormalizeCaching(normalize.apply)(ast)
     (normalizedAst, stmt"${normalizedAst.token}", executionType)
   }
@@ -41,7 +42,7 @@ trait MirrorIdiomBase extends Idiom {
   override final def translate(ast: Ast, topLevelQuat: Quat, executionType: ExecutionType, idiomContext: IdiomContext)(
     implicit naming: NamingStrategy
   ): (Ast, Statement, ExecutionType) = {
-    val normalize     = new Normalize(idiomContext.config)
+    val normalize     = new Normalize(NormalizeCaches.unlimitedCache(), idiomContext.config)
     val normalizedAst = normalize(ast)
     (normalizedAst, stmt"${normalizedAst.token}", executionType)
   }

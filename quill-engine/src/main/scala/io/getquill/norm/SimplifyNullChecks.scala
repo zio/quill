@@ -1,5 +1,6 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCache, StatelessCache}
 import io.getquill.ast._
 import io.getquill.ast.Implicits._
 import io.getquill.norm.EqualityBehavior.AnsiEquality
@@ -30,9 +31,9 @@ import io.getquill.norm.EqualityBehavior.AnsiEquality
  * 'foo')` because a user may use `Option[T].flatMap` and explicitly transform a
  * particular value to `null`.
  */
-class SimplifyNullChecks(equalityBehavior: EqualityBehavior) extends StatelessTransformer {
+class SimplifyNullChecks(val cache: StatelessCache, equalityBehavior: EqualityBehavior) extends StatelessTransformer with HasStatelessCache {
 
-  override def apply(ast: Ast): Ast =
+  override def apply(ast: Ast): Ast = cached(ast) {
     ast match {
 
       // Center rule
@@ -76,6 +77,7 @@ class SimplifyNullChecks(equalityBehavior: EqualityBehavior) extends StatelessTr
       case other =>
         super.apply(other)
     }
+  }
 
   object `== or !=` {
     def unapply(ast: Ast): Option[(Ast, Ast)] = ast match {

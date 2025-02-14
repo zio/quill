@@ -5,11 +5,12 @@ import io.getquill.MirrorContexts.testContext.qr1
 import io.getquill.MirrorContexts.testContext.qr2
 import io.getquill.MirrorContexts.testContext.quote
 import io.getquill.MirrorContexts.testContext.unquote
+import io.getquill.{StatelessCache, StatelessCacheOpt}
 import io.getquill.util.TraceConfig
 
 class AdHocReductionSpec extends Spec {
 
-  val AdHocReduction = new AdHocReduction(TraceConfig.Empty)
+  val AdHocReduction = new AdHocReduction(StatelessCacheOpt.NoCache, TraceConfig.Empty)
 
   "*.filter" - {
     "a.filter(b => c).filter(d => e)" in {

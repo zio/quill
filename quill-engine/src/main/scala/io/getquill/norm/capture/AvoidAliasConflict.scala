@@ -1,5 +1,6 @@
 package io.getquill.norm.capture
 
+import io.getquill.StatefulCache
 import io.getquill.ast.{Entity, Filter, FlatJoin, FlatMap, GroupBy, Ident, Join, Map, Query, SortBy, StatefulTransformer, _}
 import io.getquill.ast.Implicits._
 import io.getquill.norm.{BetaReduction, Normalize}
@@ -44,11 +45,14 @@ import scala.collection.immutable.Set
  * called once from the top-level inside `SqlNormalize` at the very end of the
  * transformation pipeline.
  */
-private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: Boolean, traceConfig: TraceConfig)
+private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: Boolean, override val cache: StatefulCache[Set[IdentName]], traceConfig: TraceConfig)
     extends StatefulTransformer[Set[IdentName]] {
 
   val interp = new Interpolator(TraceType.AvoidAliasConflict, traceConfig, 3)
   import interp._
+
+  def AvoidAliasConflict(state: Set[IdentName], detemp: Boolean = this.detemp) =
+    new AvoidAliasConflict(state, detemp, cache, traceConfig)
 
   object Unaliased {
 
@@ -94,7 +98,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
           BetaReduction(body, alias -> fresh)
         }(pr => pr != body)
 
-      (f(query, fresh, pr), AvoidAliasConflict(state + fresh.idName, detemp, traceConfig))
+      (f(query, fresh, pr), AvoidAliasConflict(state + fresh.idName))
     }(_._1 != elem)
 
   private def applyBodies[T <: Query](pairs: List[(Ident, Ast)]): (List[(Ident, Ast)], List[IdentName]) =
@@ -137,7 +141,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
           val ((toId1, mapBody1), s2) = apply(mapId, mapBody)((_, _))
           (
             GroupByMap(q, byId1, byBody1, toId1, mapBody1),
-            new AvoidAliasConflict(s1.state ++ s2.state, detemp, traceConfig)
+            AvoidAliasConflict(s1.state ++ s2.state)
           )
 
         case DistinctOn(Unaliased(q), x, p) =>
@@ -165,7 +169,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
             applyBodies(List(m1.byAlias -> m1.byBody, m1.mapAlias -> m1.mapBody))
           (
             GroupByMap(m1.query, byAlias, byBody, mapAlias, mapBody),
-            new AvoidAliasConflict(newTrans.state ++ state, detemp, traceConfig)
+            AvoidAliasConflict(newTrans.state ++ state)
           )
 
         case m @ DistinctOn(CanRealias(), _, _) =>
@@ -188,7 +192,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
               }(_ != o)
             val (orr, orrt) =
               trace"Uncapturing Join: Recurse with state: ${brt.state} + $freshA + $freshB".andReturnIf {
-                AvoidAliasConflict(brt.state + freshA.idName + freshB.idName, detemp, traceConfig)(or)
+                AvoidAliasConflict(brt.state + freshA.idName + freshB.idName)(or)
               }(_._1 != or)
 
             (Join(t, ar, br, freshA, freshB, orr), orrt)
@@ -204,7 +208,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
               }(_ != o)
             val (orr, orrt) =
               trace"Uncapturing FlatJoin: Recurse with state: ${art.state} + $freshA".andReturnIf {
-                AvoidAliasConflict(art.state + freshA.idName, detemp, traceConfig)(or)
+                new AvoidAliasConflict(art.state + freshA.idName, detemp, cache, traceConfig)(or)
               }(_._1 != or)
 
             (FlatJoin(t, ar, freshA, orr), orrt)
@@ -225,7 +229,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
         }(_ != p)
       val (prr, t) =
         trace"Uncapture Apply Recurse".andReturnIf {
-          AvoidAliasConflict(state + fresh.idName, detemp, traceConfig)(pr)
+          new AvoidAliasConflict(state + fresh.idName, detemp, cache, traceConfig)(pr)
         }(_._1 != pr)
 
       (f(fresh, prr), t)
@@ -275,7 +279,7 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
         case ((body, state, newParams), param) => {
           val fresh    = freshIdent(param)
           val pr       = BetaReduction(body, param -> fresh)
-          val (prr, t) = AvoidAliasConflict(state + fresh.idName, false, traceConfig)(pr)
+          val (prr, t) = AvoidAliasConflict(state + fresh.idName, false)(pr)
           (prr, t.state, newParams :+ fresh)
         }
       }
@@ -285,27 +289,27 @@ private[getquill] case class AvoidAliasConflict(state: Set[IdentName], detemp: B
   private def applyForeach(f: Foreach): Foreach = {
     val fresh    = freshIdent(f.alias)
     val pr       = BetaReduction(f.body, f.alias -> fresh)
-    val (prr, _) = AvoidAliasConflict(state + fresh.idName, false, traceConfig)(pr)
+    val (prr, _) = new AvoidAliasConflict(state + fresh.idName, false, cache, traceConfig)(pr)
     Foreach(f.query, fresh, prr)
   }
 }
 
-private[getquill] class AvoidAliasConflictApply(traceConfig: TraceConfig) {
+private[getquill] class AvoidAliasConflictApply(cache: StatefulCache[Set[IdentName]], traceConfig: TraceConfig) {
   def apply(q: Query, detemp: Boolean = false): Query =
-    AvoidAliasConflict(Set[IdentName](), detemp, traceConfig)(q) match {
+    new AvoidAliasConflict(Set[IdentName](), detemp, cache, traceConfig)(q) match {
       case (q, _) => q
     }
 }
 
 private[getquill] object AvoidAliasConflict {
 
-  def Ast(q: Ast, detemp: Boolean = false, traceConfig: TraceConfig): Ast =
-    new AvoidAliasConflict(Set[IdentName](), detemp, traceConfig)(q) match {
+  def Ast(q: Ast, detemp: Boolean = false, cache: StatefulCache[Set[IdentName]], traceConfig: TraceConfig): Ast =
+    new AvoidAliasConflict(Set[IdentName](), detemp, cache, traceConfig)(q) match {
       case (q, _) => q
     }
 
-  def apply(q: Query, detemp: Boolean = false, traceConfig: TraceConfig): Query =
-    AvoidAliasConflict(Set[IdentName](), detemp, traceConfig)(q) match {
+  def apply(q: Query, detemp: Boolean = false, cache: StatefulCache[Set[IdentName]], traceConfig: TraceConfig): Query =
+    AvoidAliasConflict(Set[IdentName](), detemp, cache, traceConfig)(q) match {
       case (q, _) => q
     }
 
@@ -315,14 +319,17 @@ private[getquill] object AvoidAliasConflict {
    * transforming and queries encountered.
    */
   def sanitizeVariables(f: Function, dangerousVariables: Set[IdentName], traceConfig: TraceConfig): Function =
-    AvoidAliasConflict(dangerousVariables, false, traceConfig).applyFunction(f)
+    AvoidAliasConflict(dangerousVariables, false, StatefulCache.NoCache, traceConfig).applyFunction(f)
 
   /** Same is `sanitizeVariables` but for Foreach * */
   def sanitizeVariables(f: Foreach, dangerousVariables: Set[IdentName], traceConfig: TraceConfig): Foreach =
-    AvoidAliasConflict(dangerousVariables, false, traceConfig).applyForeach(f)
+    AvoidAliasConflict(dangerousVariables, false, StatefulCache.NoCache, traceConfig).applyForeach(f)
 
+  // TODO trying to move AvoidAliasConflict into the tests
+  //      since it only does two things and we want less indirection.
+  //      the interesting question is whether to pass a dealias cache into this function.
   def sanitizeQuery(q: Query, dangerousVariables: Set[IdentName], normalize: Normalize): Query =
-    AvoidAliasConflict(dangerousVariables, false, normalize.traceConf).apply(q) match {
+    AvoidAliasConflict(dangerousVariables, false, StatefulCache.NoCache, normalize.traceConf).apply(q) match {
       // Propagate aliasing changes to the rest of the query
       case (q, _) => normalize(q)
     }

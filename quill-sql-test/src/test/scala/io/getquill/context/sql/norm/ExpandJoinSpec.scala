@@ -1,16 +1,17 @@
 package io.getquill.context.sql.norm
 
+import io.getquill.StatelessCache
 import io.getquill.base.Spec
 import io.getquill.context.sql.testContext.qr1
 import io.getquill.context.sql.testContext.qr2
 import io.getquill.context.sql.testContext.qr3
 import io.getquill.context.sql.testContext.quote
 import io.getquill.context.sql.testContext.unquote
-import io.getquill.norm.{Normalize, TranspileConfig}
+import io.getquill.norm.{Normalize, NormalizeCaches, TranspileConfig}
 
 class ExpandJoinSpec extends Spec {
 
-  val ExpandJoin = new ExpandJoin(new Normalize(TranspileConfig.Empty))
+  val ExpandJoin = new ExpandJoin(StatelessCache.NoCache, new Normalize(NormalizeCaches.noCache, TranspileConfig.Empty))
 
   "expands the outer join by mapping the result" - {
     "simple" in {

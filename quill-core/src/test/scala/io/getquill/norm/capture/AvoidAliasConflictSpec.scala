@@ -1,13 +1,13 @@
 package io.getquill.norm.capture
 
 import io.getquill.MirrorContexts.testContext._
-import io.getquill.Query
+import io.getquill.{Query, StatefulCache}
 import io.getquill.base.Spec
 import io.getquill.util.TraceConfig
 
 class AvoidAliasConflictSpec extends Spec {
 
-  val AvoidAliasConflict = new AvoidAliasConflictApply(TraceConfig.Empty)
+  val AvoidAliasConflict = new AvoidAliasConflictApply(StatefulCache.NoCache, TraceConfig.Empty)
 
   "renames alias to avoid conflict between entities during normalization" - {
     "flatMap" in {

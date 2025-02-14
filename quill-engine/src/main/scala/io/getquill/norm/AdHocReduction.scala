@@ -1,5 +1,6 @@
 package io.getquill.norm
 
+import io.getquill.{HasStatelessCacheOpt, StatelessCache, StatelessCacheOpt}
 import io.getquill.ast.BinaryOperation
 import io.getquill.ast.BooleanOperator
 import io.getquill.ast.Filter
@@ -10,9 +11,9 @@ import io.getquill.ast.Union
 import io.getquill.ast.UnionAll
 import io.getquill.util.TraceConfig
 
-class AdHocReduction(traceConfig: TraceConfig) {
+class AdHocReduction(val cache: StatelessCacheOpt, traceConfig: TraceConfig) extends HasStatelessCacheOpt {
 
-  def unapply(q: Query) =
+  def unapply(q: Query) = cached(q) {
     q match {
 
       // ---------------------------
@@ -49,5 +50,5 @@ class AdHocReduction(traceConfig: TraceConfig) {
 
       case other => None
     }
-
+  }
 }
